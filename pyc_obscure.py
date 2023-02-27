@@ -134,16 +134,28 @@ class Obscure:
             tuple(cellvars),
         )
 
+    def _find_jmp_offset(self, x):
+        i = 0
+        while self.instr_offset[i] <= x and i <= len(self.instr_offset):
+            i += 1
+            pass
+        return i
+
     def basic_obscure(self):
-        code = self.co.co_code
+        code = list(self.co.co_code)
         offsets = self.instr_offset
-        res = b""
+        res = []
         index = 0
         for i in range(1, len(offsets)):
-            obs_instr = self._get_obs_instr(len(res))
+            obs_instr = list(self._get_obs_instr(len(res)))
+            for j in range(offsets[i-1], offsets[i], 2):
+                if code[j] in opcode.hasjabs:
+                    code[j+1] += self._find_jmp_offset(code[j+1]) * 4
+                elif code[j] in opcode.hasjrel:
+                    code[j+1] += (self._find_jmp_offset(offsets[i-1] + code[j+1])-(i-1)) * 4
             res += obs_instr + code[offsets[i-1]:offsets[i]]
 
-        self.co = self.new_code_object(code=res)
+        self.co = self.new_code_object(code=bytes(res))
 
     def write_pyc(self, filename):
         s = pack16(self.magic_int) + b"\r\n"
