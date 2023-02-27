@@ -1,3 +1,5 @@
+> forked from marryjianjian/pyc_obscure, fixed the bug that obfuscated .pyc cannot run normally
+
 # pyc_obscure (demo)
 a simple obfuscator for pyc
 
